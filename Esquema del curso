@@ -1,0 +1,757 @@
+
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esquema Interactivo: Curso Power BI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices:
+        - Información General: Goal: Inform. Presentation: Static HTML text. Interaction: None. Justification: Direct presentation of course overview. Method: HTML.
+        - Temario Detallado (Navigation): Goal: Organize. Presentation: Clickable list of classes. Interaction: Click to show class details and update chart. Justification: Easy access to each class module. Method: HTML + JS.
+        - Temario Detallado (Class Details): Goal: Inform. Presentation: Structured HTML text (headings, lists). Interaction: Content updates on class selection. Justification: Clear presentation of class-specific information. Method: HTML + JS.
+        - Temario Detallado (Chart): Goal: Compare. Presentation: Grouped Bar chart (Count of Learning Objectives, Topics, In-Class Activities per class). Interaction: Tooltips, highlight selected class. Justification: Visual summary of content load and focus across classes. Library: Chart.js.
+        - Proyecto Final: Goal: Inform. Presentation: Structured HTML text. Interaction: None. Justification: Clear presentation of final project requirements. Method: HTML.
+        CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* Tailwind's default sans-serif is good, but Inter is nice too */
+        }
+        .tab-active {
+            border-bottom-width: 4px;
+            border-color: #0284c7; /* sky-600 */
+            color: #0284c7; /* sky-600 */
+            font-weight: 600;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .class-item.active {
+            background-color: #e0f2fe; /* sky-100 */
+            color: #0c4a6e; /* sky-800 */
+            font-weight: 500;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px; /* Increased max-width */
+            margin-left: auto;
+            margin-right: auto;
+            height: 450px; /* Increased height */
+            max-height: 500px; /* Adjusted max-height */
+        }
+        /* Custom scrollbar for class list if it overflows */
+        .class-list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .class-list-container::-webkit-scrollbar-track {
+            background: #f1f5f9; /* slate-100 */
+        }
+        .class-list-container::-webkit-scrollbar-thumb {
+            background: #94a3b8; /* slate-400 */
+            border-radius: 4px;
+        }
+        .class-list-container::-webkit-scrollbar-thumb:hover {
+            background: #64748b; /* slate-500 */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-700 antialiased">
+
+    <header class="bg-sky-700 text-white shadow-lg">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <h1 id="main-title" class="text-3xl sm:text-4xl font-bold tracking-tight">Esquema Interactivo del Curso</h1>
+        </div>
+    </header>
+
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-center space-x-4 sm:space-x-8 border-b border-slate-200">
+                <button data-target="general" class="tab-button py-4 px-2 sm:px-4 text-sm sm:text-base font-medium text-slate-500 hover:text-sky-600 focus:outline-none tab-active">
+                    Información General
+                </button>
+                <button data-target="temario" class="tab-button py-4 px-2 sm:px-4 text-sm sm:text-base font-medium text-slate-500 hover:text-sky-600 focus:outline-none">
+                    Temario Detallado
+                </button>
+                <button data-target="proyecto" class="tab-button py-4 px-2 sm:px-4 text-sm sm:text-base font-medium text-slate-500 hover:text-sky-600 focus:outline-none">
+                    Proyecto Final
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <section id="general" class="content-section active p-4 sm:p-6 bg-white rounded-lg shadow">
+            <h2 class="text-2xl font-semibold text-sky-700 mb-4">Bienvenido al Curso de Power BI</h2>
+            <p class="mb-6 text-slate-600">
+                Esta aplicación interactiva te permitirá explorar en detalle el contenido del curso "Power BI: Del Dato al Insight para la Toma de Decisiones".
+                Navega a través de las pestañas para conocer los objetivos, el temario de cada clase y los detalles del proyecto final.
+                El objetivo es proporcionarte una visión clara y estructurada de lo que aprenderás y cómo lo aplicarás.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-slate-100 p-4 rounded-md">
+                    <h3 class="font-semibold text-lg text-slate-800 mb-1">Nombre del Curso:</h3>
+                    <p id="courseName" class="text-slate-600"></p>
+                </div>
+                <div class="bg-slate-100 p-4 rounded-md">
+                    <h3 class="font-semibold text-lg text-slate-800 mb-1">Institución:</h3>
+                    <p id="institution" class="text-slate-600"></p>
+                </div>
+                <div class="bg-slate-100 p-4 rounded-md">
+                    <h3 class="font-semibold text-lg text-slate-800 mb-1">Dirigido a:</h3>
+                    <p id="targetAudience" class="text-slate-600"></p>
+                </div>
+                <div class="bg-slate-100 p-4 rounded-md">
+                    <h3 class="font-semibold text-lg text-slate-800 mb-1">Duración Total:</h3>
+                    <p id="duration" class="text-slate-600"></p>
+                </div>
+                <div class="bg-slate-100 p-4 rounded-md">
+                    <h3 class="font-semibold text-lg text-slate-800 mb-1">Modalidad:</h3>
+                    <p id="modality" class="text-slate-600"></p>
+                </div>
+            </div>
+            <div class="mt-6 bg-slate-100 p-4 rounded-md">
+                <h3 class="font-semibold text-xl text-slate-800 mb-2">Objetivo General del Curso:</h3>
+                <p id="generalObjective" class="text-slate-600 leading-relaxed"></p>
+            </div>
+        </section>
+
+        <section id="temario" class="content-section p-0">
+            <div class="p-4 sm:p-6 bg-white rounded-lg shadow mb-6">
+                <h2 class="text-2xl font-semibold text-sky-700 mb-4">Temario Detallado del Curso</h2>
+                <p class="mb-6 text-slate-600">
+                    Explora el contenido de cada una de las 10 clases del curso. Selecciona una clase de la lista para ver sus objetivos de aprendizaje,
+                    los temas que se cubrirán, las actividades planificadas en clase y la actividad de seguimiento.
+                    El gráfico a continuación muestra una comparación visual de la cantidad de objetivos, temas y actividades por clase, ayudándote a
+                    identificar la densidad de contenido en cada módulo.
+                </p>
+            </div>
+            <div class="flex flex-col lg:flex-row gap-6">
+                <div class="lg:w-1/3 bg-white p-4 sm:p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-slate-800 mb-4">Clases</h3>
+                    <ul id="classList" class="space-y-2 class-list-container max-h-[60vh] overflow-y-auto">
+                    </ul>
+                </div>
+                <div class="lg:w-2/3 flex flex-col gap-6">
+                    <div id="classDetail" class="bg-white p-4 sm:p-6 rounded-lg shadow min-h-[300px]">
+                        <p class="text-slate-500 italic text-center py-10">Selecciona una clase de la lista para ver los detalles.</p>
+                    </div>
+                     <div class="bg-white p-4 sm:p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-semibold text-slate-800 mb-4 text-center">Distribución de Contenido por Clase</h3>
+                        <div class="chart-container">
+                            <canvas id="classContentChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="proyecto" class="content-section p-4 sm:p-6 bg-white rounded-lg shadow">
+            <h2 class="text-2xl font-semibold text-sky-700 mb-4">Actividad Final Integradora: Proyecto de Análisis de Datos con Power BI</h2>
+            <p class="mb-6 text-slate-600">
+                El proyecto final es una parte crucial de este curso. Aquí aplicarás de manera integral todos los conocimientos y habilidades
+                adquiridas para resolver un problema de negocio real o simulado, utilizando Power BI como herramienta principal.
+                A continuación, encontrarás los detalles sobre el objetivo, la descripción, las fases y los criterios de evaluación del proyecto.
+            </p>
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-xl font-semibold text-slate-800 mb-2">Objetivo del Proyecto:</h3>
+                    <p id="projectObjective" class="text-slate-600 leading-relaxed"></p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-slate-800 mb-2">Descripción:</h3>
+                    <p id="projectDescription" class="text-slate-600 leading-relaxed"></p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-slate-800 mb-2">Fases del Proyecto:</h3>
+                    <ul id="projectPhases" class="list-disc list-inside text-slate-600 space-y-1 leading-relaxed"></ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-slate-800 mb-2">Criterios de Evaluación:</h3>
+                    <ul id="projectEvaluation" class="list-disc list-inside text-slate-600 space-y-1 leading-relaxed"></ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-800 text-slate-300 py-8 mt-12 text-center">
+        <p>&copy; <span id="currentYear"></span> Universidad de Antioquia - Curso Power BI. Esquema Interactivo.</p>
+    </footer>
+
+<script>
+    const courseData = {
+        general: {
+            courseName: "Power BI: Del Dato al Insight para la Toma de Decisiones",
+            institution: "Universidad de Antioquia",
+            targetAudience: "Estudiantes de Pregrado",
+            duration: "10 clases de 3 horas cada una (Total: 30 horas)",
+            modality: "Virtual",
+            generalObjective: "Capacitar a los estudiantes de pregrado en el uso de Microsoft Power BI para la adquisición, transformación, modelado, visualización y análisis de datos, permitiéndoles construir dashboards interactivos y generar insights accionables que soporten la toma de decisiones estratégicas."
+        },
+        classes: [
+            {
+                id: "clase1",
+                title: "Clase 1: Introducción a Power BI y Conceptos Fundamentales de Business Intelligence",
+                learningObjectives: [
+                    "Comprender el rol de Power BI en el ecosistema de Business Intelligence (BI) y la ciencia de datos.",
+                    "Familiarizarse con la interfaz de Power BI Desktop.",
+                    "Entender el flujo de trabajo básico en Power BI.",
+                    "Conocer los diferentes componentes de Power BI (Desktop, Service, Mobile)."
+                ],
+                topics: [
+                    "¿Qué es Business Intelligence y por qué es importante?",
+                    "Introducción a Power BI: Arquitectura y componentes.",
+                    "Descarga e instalación de Power BI Desktop.",
+                    "Recorrido por la interfaz de Power BI Desktop: Vista de informe, Vista de datos, Vista de modelo.",
+                    "Conceptos básicos: Conjuntos de datos, informes, dashboards.",
+                    "Tipos de licencias de Power BI."
+                ],
+                inClassActivities: [
+                    "Instalación guiada de Power BI Desktop.",
+                    "Exploración interactiva de la interfaz.",
+                    "Discusión sobre casos de uso de BI en diferentes industrias."
+                ],
+                followUpActivity: "Investigar y presentar un caso de estudio real donde Power BI haya sido utilizado para mejorar la toma de decisiones en una empresa."
+            },
+            {
+                id: "clase2",
+                title: "Clase 2: Conexión y Carga de Datos en Power BI",
+                learningObjectives: [
+                    "Identificar y conectar Power BI a diversas fuentes de datos.",
+                    "Comprender la importancia de la calidad de los datos.",
+                    "Cargar datos de diferentes formatos a Power BI."
+                ],
+                topics: [
+                    "Tipos de fuentes de datos soportadas por Power BI (Excel, CSV, Bases de datos SQL, Web, Carpetas, etc.).",
+                    "Conexión a archivos planos (CSV, Excel).",
+                    "Conexión a bases de datos (SQL Server, Access - conceptos básicos).",
+                    "Carga de datos desde la web (ej. tablas HTML).",
+                    "Conceptos de importación vs. DirectQuery."
+                ],
+                inClassActivities: [
+                    "Conectar Power BI a un archivo Excel con datos de ventas.",
+                    "Cargar un archivo CSV de datos de clientes.",
+                    "Intentar cargar datos de una tabla simple desde una URL pública."
+                ],
+                followUpActivity: "Encontrar una fuente de datos pública (ej. datos de gobierno, datos abiertos) y cargarla en Power BI Desktop. Documentar el proceso y cualquier desafío encontrado."
+            },
+            {
+                id: "clase3",
+                title: "Clase 3: Transformación y Limpieza de Datos con Power Query",
+                learningObjectives: [
+                    "Dominar las funcionalidades del Editor de Power Query para la limpieza y transformación de datos.",
+                    "Aplicar pasos de transformación comunes para preparar los datos para el análisis.",
+                    "Comprender la importancia de la preparación de datos."
+                ],
+                topics: [
+                    "Introducción al Editor de Power Query.",
+                    "Tipos de datos y su manejo.",
+                    "Operaciones de limpieza: Eliminar duplicados, reemplazar valores, dividir columnas, cambiar tipos de datos.",
+                    "Operaciones de transformación: Anular dinamización de columnas, combinar consultas (Merge), anexar consultas (Append).",
+                    "Creación de columnas personalizadas y condicionales.",
+                    "Gestión de errores y valores nulos."
+                ],
+                inClassActivities: [
+                    "Limpiar un conjunto de datos con errores y datos inconsistentes.",
+                    "Combinar dos tablas de Excel (ej. ventas y productos).",
+                    "Crear una columna calculada simple en Power Query."
+                ],
+                followUpActivity: "Aplicar al menos 5 transformaciones diferentes en un conjunto de datos proporcionado por el instructor, explicando la justificación de cada paso."
+            },
+            {
+                id: "clase4",
+                title: "Clase 4: Modelado de Datos y Relaciones",
+                learningObjectives: [
+                    "Diseñar un modelo de datos eficiente en Power BI.",
+                    "Establecer relaciones correctas entre tablas.",
+                    "Comprender los conceptos de tablas de hechos y tablas de dimensiones.",
+                    "Optimizar el rendimiento del modelo de datos."
+                ],
+                topics: [
+                    "Conceptos de modelado de datos: Esquema en estrella y esquema en copo de nieve.",
+                    "Creación y gestión de relaciones entre tablas (uno a uno, uno a muchos, muchos a muchos).",
+                    "Cardinalidad y dirección de filtro cruzado.",
+                    "Propiedades de las tablas y columnas.",
+                    "Ocultar columnas y tablas para una mejor experiencia de usuario.",
+                    "Conceptos de jerarquías."
+                ],
+                inClassActivities: [
+                    "Construir un modelo de datos simple a partir de varias tablas relacionadas (ej. clientes, productos, ventas, fechas).",
+                    "Establecer relaciones correctas y corregir relaciones incorrectas.",
+                    "Crear una jerarquía de fechas."
+                ],
+                followUpActivity: "Diseñar un modelo de datos para un escenario dado (ej. seguimiento de proyectos, gestión de inventario), identificando tablas de hechos y dimensiones, y las relaciones entre ellas."
+            },
+            {
+                id: "clase5",
+                title: "Clase 5: Introducción a DAX (Data Analysis Expressions) - Parte 1",
+                learningObjectives: [
+                    "Comprender la sintaxis y los conceptos básicos de DAX.",
+                    "Crear columnas calculadas para enriquecer el modelo de datos.",
+                    "Crear medidas simples para cálculos agregados."
+                ],
+                topics: [
+                    "¿Qué es DAX y por qué es fundamental?",
+                    "Contexto de fila vs. Contexto de filtro.",
+                    "Sintaxis básica de DAX.",
+                    "Funciones DAX comunes: SUM, AVERAGE, COUNT, DISTINCTCOUNT, MIN, MAX.",
+                    "Creación de columnas calculadas (ej. CostoTotal = Cantidad * PrecioUnitario).",
+                    "Creación de medidas implícitas y explícitas.",
+                    "Concepto de iteradores (ej. SUMX)."
+                ],
+                inClassActivities: [
+                    "Crear varias columnas calculadas para transformar datos existentes.",
+                    "Crear medidas simples para calcular el total de ventas, promedio de precios, etc.",
+                    "Experimentar con SUMX para calcular el total de ventas por fila."
+                ],
+                followUpActivity: "Dado un conjunto de datos, crear al menos 3 columnas calculadas y 3 medidas que sean relevantes para el análisis de ese conjunto de datos."
+            },
+            {
+                id: "clase6",
+                title: "Clase 6: DAX Avanzado y Optimización de Medidas",
+                learningObjectives: [
+                    "Dominar el contexto de evaluación en DAX.",
+                    "Utilizar funciones de inteligencia de tiempo para análisis temporales.",
+                    "Crear medidas más complejas y optimizadas."
+                ],
+                topics: [
+                    "La función CALCULATE y su importancia.",
+                    "Modificadores de filtro (ALL, ALLEXCEPT, REMOVEFILTERS, KEEPFILTERS).",
+                    "Funciones de inteligencia de tiempo: TOTALYTD, TOTALQTD, TOTALMTD, DATEADD, SAMEPERIODLASTYEAR.",
+                    "Creación de medidas para comparaciones (ej. Ventas Año Anterior, Crecimiento % Anual).",
+                    "Variables en DAX.",
+                    "Buenas prácticas en DAX."
+                ],
+                inClassActivities: [
+                    "Crear medidas utilizando CALCULATE para diferentes escenarios de filtrado.",
+                    "Calcular ventas del año anterior y el crecimiento porcentual.",
+                    "Crear una medida que muestre el promedio móvil de ventas."
+                ],
+                followUpActivity: "Desarrollar un conjunto de medidas DAX complejas que respondan a preguntas de negocio específicas sobre un conjunto de datos (ej. \"Ventas acumuladas del año hasta la fecha\", \"Ventas del mismo periodo del año anterior\")."
+            },
+            {
+                id: "clase7",
+                title: "Clase 7: Diseño de Visualizaciones Efectivas en Power BI",
+                learningObjectives: [
+                    "Seleccionar el tipo de visualización adecuado para cada tipo de dato y mensaje.",
+                    "Aplicar principios de diseño para crear visualizaciones claras y atractivas.",
+                    "Personalizar y formatear visualizaciones."
+                ],
+                topics: [
+                    "Principios de visualización de datos: Claridad, precisión, impacto.",
+                    "Tipos de visualizaciones estándar en Power BI: Gráficos de barras, líneas, circulares, mapas, tablas, matrices, tarjetas.",
+                    "Cuándo usar cada tipo de visualización.",
+                    "Personalización de visualizaciones: Títulos, ejes, etiquetas de datos, colores, fondos.",
+                    "Formato condicional.",
+                    "Uso de imágenes y formas."
+                ],
+                inClassActivities: [
+                    "Recrear un gráfico existente utilizando diferentes tipos de visualización para comparar su efectividad.",
+                    "Aplicar formato condicional a una tabla o matriz.",
+                    "Diseñar un conjunto de visualizaciones para un KPI específico."
+                ],
+                followUpActivity: "Crear un informe de una página con al menos 5 visualizaciones diferentes que cuenten una historia sobre un conjunto de datos, aplicando principios de diseño."
+            },
+            {
+                id: "clase8",
+                title: "Clase 8: Creación de Informes y Dashboards Interactivos",
+                learningObjectives: [
+                    "Diseñar informes interactivos con filtros, segmentaciones de datos y drill-through.",
+                    "Crear dashboards efectivos para el monitoreo de KPIs.",
+                    "Optimizar la experiencia del usuario en los informes."
+                ],
+                topics: [
+                    "Diseño de layout de informes.",
+                    "Uso de segmentaciones de datos (Slicers) y sincronización.",
+                    "Interacciones entre visualizaciones.",
+                    "Botones y marcadores (Bookmarks) para navegación interactiva.",
+                    "Drill-through y drill-down.",
+                    "Creación de Tooltips personalizados.",
+                    "Introducción a los dashboards en Power BI Service (diferencias con informes)."
+                ],
+                inClassActivities: [
+                    "Crear un informe con múltiples páginas y navegación entre ellas usando botones.",
+                    "Implementar segmentaciones de datos y probar sus interacciones.",
+                    "Configurar un drill-through de un resumen a un detalle."
+                ],
+                followUpActivity: "Mejorar el informe de la clase anterior añadiendo interactividad (segmentaciones, botones de navegación, drill-through)."
+            },
+            {
+                id: "clase9",
+                title: "Clase 9: Publicación, Compartición y Seguridad en Power BI Service",
+                learningObjectives: [
+                    "Publicar informes en Power BI Service.",
+                    "Compartir informes y dashboards de forma segura.",
+                    "Comprender los conceptos básicos de seguridad a nivel de fila (RLS).",
+                    "Configurar la actualización de datos."
+                ],
+                topics: [
+                    "Introducción a Power BI Service (la nube).",
+                    "Publicación de informes desde Power BI Desktop.",
+                    "Espacios de trabajo (Workspaces).",
+                    "Compartir informes y dashboards.",
+                    "Conceptos de seguridad a nivel de fila (RLS) y su implementación básica.",
+                    "Configuración de puertas de enlace (Gateways) para la actualización de datos.",
+                    "Programación de la actualización de datos."
+                ],
+                inClassActivities: [
+                    "Publicar un informe creado en clases anteriores en Power BI Service.",
+                    "Compartir el informe con un compañero (simulado).",
+                    "Discutir un escenario de RLS y cómo se implementaría."
+                ],
+                followUpActivity: "Investigar un caso real de implementación de RLS en una empresa y describir cómo se gestionó la seguridad de los datos."
+            },
+            {
+                id: "clase10",
+                title: "Clase 10: Narración de Datos y Generación de Insights",
+                learningObjectives: [
+                    "Desarrollar habilidades para la narración de datos (data storytelling).",
+                    "Extraer insights accionables de los dashboards.",
+                    "Presentar los hallazgos de manera efectiva para la toma de decisiones.",
+                    "Preparación para la actividad final integradora."
+                ],
+                topics: [
+                    "¿Qué es la narración de datos y por qué es crucial?",
+                    "Identificación de patrones y tendencias en los datos.",
+                    "Técnicas para comunicar insights de forma clara y concisa.",
+                    "El ciclo de vida del análisis de datos: De la pregunta al insight y la acción.",
+                    "Consideraciones éticas en el análisis de datos.",
+                    "Revisión de los principales temas del curso.",
+                    "Sesión de preguntas y respuestas para la actividad final."
+                ],
+                inClassActivities: [
+                    "Análisis de un dashboard complejo para identificar insights clave.",
+                    "Ejercicio de \"elevator pitch\" de un insight basado en datos.",
+                    "Discusión sobre cómo un insight puede llevar a una decisión de negocio."
+                ],
+                followUpActivity: "Preparar una breve presentación (5 minutos) de un insight clave derivado de un dashboard propio o de un ejemplo, explicando su relevancia y posibles acciones."
+            }
+        ],
+        finalProject: {
+            objective: "Aplicar de manera integral todos los conocimientos y habilidades adquiridas en el curso para resolver un problema de negocio real o simulado, utilizando Power BI como herramienta principal.",
+            description: "Los estudiantes trabajarán individualmente o en equipos pequeños (máximo 2 personas) en un proyecto de análisis de datos. Se les proporcionará un conjunto de datos (o podrán proponer uno propio previa aprobación del instructor) y un problema de negocio a resolver.",
+            phases: [
+                "Definición del Problema y Objetivos: Entender el problema de negocio. Definir las preguntas clave que el análisis debe responder. Identificar los KPIs relevantes.",
+                "Adquisición y Preparación de Datos: Conectar a las fuentes de datos. Realizar la limpieza y transformación de datos en Power Query. Manejar datos faltantes o inconsistentes.",
+                "Modelado de Datos: Diseñar y construir un modelo de datos robusto y eficiente. Establecer relaciones correctas entre las tablas.",
+                "Creación de Medidas y Columnas Calculadas (DAX): Desarrollar las medidas y columnas DAX necesarias para los cálculos y análisis. Utilizar funciones avanzadas de DAX según sea necesario.",
+                "Diseño de Informe y Dashboard: Crear un informe interactivo en Power BI Desktop con múltiples páginas si es necesario. Utilizar visualizaciones adecuadas para cada KPI y mensaje. Implementar interactividad (segmentaciones, botones, drill-through). Diseñar un dashboard resumen con los KPIs más importantes.",
+                "Análisis y Generación de Insights: Analizar los datos presentados en el informe y dashboard. Identificar patrones, tendencias y anomalías. Extraer al menos 3 insights accionables que respondan al problema de negocio.",
+                "Presentación y Sustentación: Preparar una presentación (10-15 minutos) donde se muestre el informe/dashboard final. Explicar el proceso de análisis, los hallazgos clave y los insights generados. Argumentar cómo estos insights pueden apoyar la toma de decisiones."
+            ],
+            evaluationCriteria: [
+                "Calidad y limpieza de los datos.",
+                "Diseño y eficiencia del modelo de datos.",
+                "Complejidad y corrección de las medidas DAX.",
+                "Diseño y usabilidad del informe/dashboard (claridad, interactividad, estética).",
+                "Profundidad del análisis y relevancia de los insights.",
+                "Claridad y efectividad de la presentación oral."
+            ]
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const mainTitle = document.getElementById('main-title');
+        mainTitle.textContent = `Esquema: ${courseData.general.courseName}`;
+        
+        document.getElementById('courseName').textContent = courseData.general.courseName;
+        document.getElementById('institution').textContent = courseData.general.institution;
+        document.getElementById('targetAudience').textContent = courseData.general.targetAudience;
+        document.getElementById('duration').textContent = courseData.general.duration;
+        document.getElementById('modality').textContent = courseData.general.modality;
+        document.getElementById('generalObjective').textContent = courseData.general.generalObjective;
+
+        document.getElementById('projectObjective').textContent = courseData.finalProject.objective;
+        document.getElementById('projectDescription').textContent = courseData.finalProject.description;
+        
+        const projectPhasesList = document.getElementById('projectPhases');
+        courseData.finalProject.phases.forEach(phase => {
+            const li = document.createElement('li');
+            li.textContent = phase;
+            projectPhasesList.appendChild(li);
+        });
+
+        const projectEvaluationList = document.getElementById('projectEvaluation');
+        courseData.finalProject.evaluationCriteria.forEach(criterion => {
+            const li = document.createElement('li');
+            li.textContent = criterion;
+            projectEvaluationList.appendChild(li);
+        });
+
+        const classList = document.getElementById('classList');
+        const classDetail = document.getElementById('classDetail');
+        
+        courseData.classes.forEach((cls, index) => {
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <button data-class-id="${cls.id}" class="class-item w-full text-left px-4 py-3 rounded-md hover:bg-sky-50 hover:text-sky-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                    <span class="font-medium">Clase ${index + 1}:</span> ${cls.title.split(':')[1].trim()}
+                </button>
+            `;
+            classList.appendChild(listItem);
+
+            listItem.querySelector('button').addEventListener('click', (e) => {
+                displayClassDetails(cls.id);
+                document.querySelectorAll('#classList .class-item').forEach(item => item.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+            });
+        });
+
+        function displayClassDetails(classId) {
+            const cls = courseData.classes.find(c => c.id === classId);
+            if (!cls) {
+                classDetail.innerHTML = '<p class="text-slate-500 italic">Detalles no encontrados.</p>';
+                return;
+            }
+
+            let objectivesHtml = cls.learningObjectives.map(obj => `<li>${obj}</li>`).join('');
+            let topicsHtml = cls.topics.map(topic => `<li>${topic}</li>`).join('');
+            let activitiesHtml = cls.inClassActivities.map(act => `<li>${act}</li>`).join('');
+
+            classDetail.innerHTML = `
+                <h3 class="text-xl font-bold text-sky-700 mb-3">${cls.title}</h3>
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-semibold text-slate-700 mb-1">Objetivos de Aprendizaje:</h4>
+                        <ul class="list-disc list-inside text-slate-600 space-y-1 text-sm">${objectivesHtml}</ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-slate-700 mb-1">Temas a Cubrir:</h4>
+                        <ul class="list-disc list-inside text-slate-600 space-y-1 text-sm">${topicsHtml}</ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-slate-700 mb-1">Actividades en Clase:</h4>
+                        <ul class="list-disc list-inside text-slate-600 space-y-1 text-sm">${activitiesHtml}</ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-slate-700 mb-1">Actividad de Seguimiento:</h4>
+                        <p class="text-slate-600 text-sm">${cls.followUpActivity}</p>
+                    </div>
+                </div>
+            `;
+            updateChartHighlight(classId);
+        }
+
+        const tabs = document.querySelectorAll('.tab-button');
+        const contentSections = document.querySelectorAll('.content-section');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.target;
+
+                tabs.forEach(t => t.classList.remove('tab-active'));
+                tab.classList.add('tab-active');
+
+                contentSections.forEach(section => {
+                    if (section.id === target) {
+                        section.classList.add('active');
+                    } else {
+                        section.classList.remove('active');
+                    }
+                });
+                if (target === 'temario' && classContentChart) {
+                     setTimeout(() => classContentChart.resize(), 0); // Ensure chart resizes if tab was hidden
+                }
+            });
+        });
+
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        
+        renderClassContentChart();
+         if (courseData.classes.length > 0) {
+            const firstClassButton = classList.querySelector('.class-item');
+            if (firstClassButton) {
+                firstClassButton.click(); 
+            }
+        }
+    });
+
+    let classContentChart = null;
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let line = '';
+        let testLine = '';
+        let lineArray = [];
+
+        for(let n = 0; n < words.length; n++) {
+            testLine += `${words[n]} `;
+            let metrics = ctx.measureText(testLine);
+            let testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+                lineArray.push(line);
+                line = `${words[n]} `;
+                testLine = `${words[n]} `;
+            } else {
+                line = testLine;
+            }
+        }
+        lineArray.push(line);
+        return lineArray;
+    }
+    
+    function renderClassContentChart() {
+        const ctx = document.getElementById('classContentChart').getContext('2d');
+        
+        const labels = courseData.classes.map((cls, index) => `Clase ${index + 1}`);
+        const learningObjectivesData = courseData.classes.map(cls => cls.learningObjectives.length);
+        const topicsData = courseData.classes.map(cls => cls.topics.length);
+        const inClassActivitiesData = courseData.classes.map(cls => cls.inClassActivities.length);
+
+        if (classContentChart) {
+            classContentChart.destroy();
+        }
+
+        classContentChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Objetivos de Aprendizaje',
+                        data: learningObjectivesData,
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)', // blue-500
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Temas a Cubrir',
+                        data: topicsData,
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)', // emerald-500
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Actividades en Clase',
+                        data: inClassActivitiesData,
+                        backgroundColor: 'rgba(239, 68, 68, 0.7)', // red-500
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Cantidad de Elementos',
+                            font: { size: 14, weight: '500' },
+                            color: '#475569' // slate-600
+                        },
+                        ticks: {
+                             color: '#64748b' // slate-500
+                        },
+                        grid: {
+                            color: '#e2e8f0' // slate-200
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Clases del Curso',
+                            font: { size: 14, weight: '500' },
+                            color: '#475569' // slate-600
+                        },
+                        ticks: {
+                            color: '#64748b', // slate-500
+                             maxRotation: 0, // Prevent rotation initially
+                             minRotation: 0,
+                             autoSkip: false, // Show all labels
+                             callback: function(value, index, values) {
+                                const label = this.getLabelForValue(value);
+                                // Simple wrap for "Clase X" if needed, or use full title if space allows
+                                // For this chart, "Clase X" is short enough.
+                                // If using longer labels from cls.title, wrapping would be essential.
+                                return label;
+                             }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                             color: '#475569', // slate-600
+                             font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleFont: { size: 14, weight: 'bold'},
+                        bodyFont: { size: 12 },
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const classIndex = tooltipItems[0].dataIndex;
+                                return courseData.classes[classIndex].title.split(':')[0]; // "Clase X"
+                            },
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y;
+                                }
+                                const classIndex = context.dataIndex;
+                                const classTitle = courseData.classes[classIndex].title.split(': ')[1];
+                                if (context.datasetIndex === 0 && tooltipItems.length > 0 && tooltipItems[0].datasetIndex === 0) { // Add title only once
+                                     //return [label, ` (${classTitle.substring(0,25)}...)`]; // Example of adding more info
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                onClick: (event, elements) => {
+                    if (elements.length > 0) {
+                        const chartElement = elements[0];
+                        const classIndex = chartElement.index;
+                        const classId = courseData.classes[classIndex].id;
+                        
+                        const classButton = document.querySelector(`.class-item[data-class-id="${classId}"]`);
+                        if (classButton) {
+                            classButton.click(); // Simulate click to update details
+                            classButton.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChartHighlight(selectedClassId) {
+        if (!classContentChart) return;
+
+        const classIndex = courseData.classes.findIndex(cls => cls.id === selectedClassId);
+
+        classContentChart.data.datasets.forEach(dataset => {
+            const defaultBgColor = dataset.backgroundColor.toString().replace(', 1)', ', 0.7)').replace(', 0.3)', ', 0.7)'); // Ensure base opacity
+            const defaultBorderColor = dataset.borderColor.toString().replace(', 0.7)', ', 1)');
+
+            dataset.backgroundColor = dataset.data.map((_, i) => 
+                i === classIndex ? defaultBgColor.replace(', 0.7)', ', 1)') : defaultBgColor.replace(', 1)', ', 0.3)')
+            );
+             dataset.borderColor = dataset.data.map((_, i) => 
+                i === classIndex ? defaultBorderColor : defaultBorderColor.replace(', 1)', ', 0.5)')
+            );
+        });
+        classContentChart.update();
+    }
+
+</script>
+</body>
+</html>
